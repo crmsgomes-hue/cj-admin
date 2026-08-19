@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CJ Admin</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#141821">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root{--bg:#141821;--card:#1c2333;--border:#2a3346;--text:#eef1f8;--text-dim:#8a94ab;--accent:#e05d3a;--accent-dim:#3a2420;--danger:#e2584a;--ok:#4fae7d;--radius:14px;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .screen{display:none;min-height:100vh;flex-direction:column;}
+  .screen.active{display:flex;}
+  header.top{padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+  header.top h1{font-size:17px;font-weight:700;margin:0;}
+  header.top .sub{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .btn-icon{background:none;border:none;color:var(--text-dim);font-size:13px;padding:6px;}
+
+  #login{align-items:center;justify-content:center;padding:24px;}
+  .login-box{width:100%;max-width:340px;text-align:center;}
+  .logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(145deg,#f27a55,var(--accent));display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 18px;box-shadow:0 8px 24px rgba(224,93,58,.28);}
+  .login-box h2{margin:0 0 4px;font-size:20px;}
+  .login-box p{color:var(--text-dim);font-size:13px;margin:0 0 24px;}
+  .field{margin-bottom:14px;text-align:left;}
+  .field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;}
+  .field input, .field select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px;font-size:15px;}
+  #login-error{color:var(--danger);font-size:13px;height:18px;margin-top:6px;}
+
+  .btn{width:100%;padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:600;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--border);}
+
+  #empresas-list, #lojas-list, #gerentes-list{padding:16px 20px 90px;}
+  .emp-card, .loja-card, .ger-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+  .emp-card .nome, .loja-card .nome, .ger-card .nome{font-size:14px;font-weight:600;}
+  .emp-card .meta, .loja-card .meta, .ger-card .meta{font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+  .fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:26px;box-shadow:0 8px 20px rgba(224,93,58,.35);}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(5,8,18,.7);display:none;align-items:flex-end;z-index:50;}
+  .modal-bg.active{display:flex;}
+  .modal{background:#1a2032;width:100%;border-radius:20px 20px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto;}
+  .modal h3{margin:0 0 18px;font-size:17px;}
+  .row2{display:flex;gap:12px;}
+  .row2 .field{flex:1;}
+  .modal-actions{display:flex;gap:10px;margin-top:8px;}
+  .modal-actions .btn{flex:1;width:auto;}
+  .empty-state{text-align:center;padding:60px 30px;color:var(--text-dim);}
+  .empty-state .ic{font-size:40px;margin-bottom:12px;}
+  .cred-box{background:var(--accent-dim);border:1px dashed var(--accent);border-radius:10px;padding:12px;font-size:13px;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div id="login" class="screen active">
+  <div class="login-box">
+    <div class="logo">🛡️</div>
+    <h2>CJ Admin</h2>
+    <p>Acesso reservado à administração</p>
+    <div class="field"><label>Utilizador</label><input type="text" id="loginUsername" autocapitalize="none"></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPassword"></div>
+    <button class="btn primary" onclick="tentarLogin()">Entrar</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<div id="empresas" class="screen">
+  <header class="top">
+    <div><h1>Empresas</h1><div class="sub">CJ Admin</div></div>
+    <button class="btn-icon" onclick="logout()">Sair</button>
+  </header>
+  <div id="empresas-list"></div>
+  <button class="fab" onclick="openEmpresaModal()">+</button>
+</div>
+
+<div id="lojas" class="screen">
+  <header class="top">
+    <div><h1 id="lojas-empresa-nome">Lojas</h1><div class="sub">Empresa</div></div>
+    <button class="btn-icon" onclick="showScreen('empresas')">← Empresas</button>
+  </header>
+  <div id="lojas-list"></div>
+  <button class="fab" onclick="openLojaModal()">+</button>
+</div>
+
+<div id="gerentes" class="screen">
+  <header class="top">
+    <div><h1 id="gerentes-loja-nome">Gerentes</h1><div class="sub">Loja</div></div>
+    <button class="btn-icon" onclick="voltarLojas()">← Lojas</button>
+  </header>
+  <div id="gerentes-list"></div>
+  <button class="fab" onclick="openGerenteModal()">+</button>
+</div>
+
+<!-- MODAL EMPRESA -->
+<div class="modal-bg" id="modalEmpresa">
+  <div class="modal">
+    <h3>Nova empresa</h3>
+    <div class="field"><label>Nome da empresa</label><input type="text" id="eNome" placeholder="ex: Café Silva Lda"></div>
+    <div class="field"><label>Email de contacto</label><input type="email" id="eEmail"></div>
+    <div class="field"><label>Nome da primeira loja</label><input type="text" id="eLojaNome" placeholder="ex: Loja Centro"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('modalEmpresa')">Cancelar</button>
+      <button class="btn primary" onclick="guardarEmpresa()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOJA -->
+<div class="modal-bg" id="modalLoja">
+  <div class="modal">
+    <h3>Nova loja</h3>
+    <div class="field"><label>Nome da loja</label><input type="text" id="lNome" placeholder="ex: Loja Norte"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('modalLoja')">Cancelar</button>
+      <button class="btn primary" onclick="guardarLoja()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GERENTE -->
+<div class="modal-bg" id="modalGerente">
+  <div class="modal">
+    <h3>Novo gerente</h3>
+    <div class="field"><label>Nome</label><input type="text" id="gNome"></div>
+    <div class="field"><label>Utilizador (login)</label><input type="text" id="gUsername" autocapitalize="none" placeholder="ex: joao.gerente"></div>
+    <div class="field"><label>Password inicial</label><input type="text" id="gPassword"></div>
+    <div id="gerenteError" style="color:var(--danger);font-size:12px;margin-bottom:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('modalGerente')">Cancelar</button>
+      <button class="btn primary" onclick="guardarGerente()">Criar acesso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://mnbtfatkdllhsekmnpzk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uYnRmYXRrZGxsaHNla21ucHprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODMyNjYsImV4cCI6MjEwMjY1OTI2Nn0.pPHvX8HStZ7vqK_LqlTUG33YPITGzbwkjEfHovTxbSA";
+
+async function sb(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...opts,
+    headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": opts.prefer || "return=representation", ...(opts.headers || {}) }
+  });
+  if (!res.ok) { const t = await res.text(); console.error(t); throw new Error(t); }
+  return res.status === 204 ? null : res.json();
+}
+async function sha256Hex(texto) {
+  const enc = new TextEncoder().encode(texto);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+let state = { admin: null, empresaAtual: null, lojaAtual: null };
+
+async function tentarLogin() {
+  const errEl = document.getElementById("login-error");
+  errEl.textContent = "";
+  const username = document.getElementById("loginUsername").value.trim().toLowerCase();
+  const password = document.getElementById("loginPassword").value;
+  if (!username || !password) { errEl.textContent = "Preenche utilizador e password."; return; }
+  try {
+    const password_hash = await sha256Hex(password);
+    const admins = await sb(`cj_admin_users?username=eq.${encodeURIComponent(username)}&password_hash=eq.${password_hash}&select=*`);
+    if (!admins.length) throw new Error("Credenciais inválidas");
+    state.admin = admins[0];
+    showScreen("empresas");
+    carregarEmpresas();
+  } catch (e) {
+    errEl.textContent = "Utilizador ou password incorretos";
+  }
+}
+function logout() { state = { admin: null, empresaAtual: null, lojaAtual: null }; showScreen("login"); }
+function showScreen(id) { document.querySelectorAll(".screen").forEach(s => s.classList.remove("active")); document.getElementById(id).classList.add("active"); }
+function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+
+/* ---------- EMPRESAS ---------- */
+async function carregarEmpresas() {
+  const empresas = await sb(`cj_empresas?select=*&order=nome`);
+  const list = document.getElementById("empresas-list");
+  if (!empresas.length) { list.innerHTML = `<div class="empty-state"><div class="ic">🏢</div>Ainda não há empresas registadas</div>`; return; }
+  const contagens = await Promise.all(empresas.map(e => sb(`cj_lojas?empresa_id=eq.${e.id}&select=id`)));
+  list.innerHTML = empresas.map((e, i) => `
+    <div class="emp-card" onclick="abrirLojas('${e.id}','${e.nome.replace(/'/g,"\\'")}')">
+      <div class="nome">${e.nome}</div>
+      <div class="meta">${contagens[i].length} loja(s) · ${e.email_contacto || "sem email"}</div>
+    </div>
+  `).join("");
+}
+function openEmpresaModal() {
+  document.getElementById("eNome").value = "";
+  document.getElementById("eEmail").value = "";
+  document.getElementById("eLojaNome").value = "";
+  document.getElementById("modalEmpresa").classList.add("active");
+}
+async function guardarEmpresa() {
+  const nome = document.getElementById("eNome").value.trim();
+  const email_contacto = document.getElementById("eEmail").value.trim();
+  const lojaNome = document.getElementById("eLojaNome").value.trim() || "Loja principal";
+  if (!nome) return;
+  const empresas = await sb("cj_empresas", { method: "POST", body: JSON.stringify([{ nome, email_contacto }]) });
+  const empresa = empresas[0];
+  await sb("cj_lojas", { method: "POST", body: JSON.stringify([{ empresa_id: empresa.id, nome: lojaNome }]) });
+  closeModal("modalEmpresa");
+  carregarEmpresas();
+}
+
+/* ---------- LOJAS ---------- */
+async function abrirLojas(empresaId, empresaNome) {
+  state.empresaAtual = { id: empresaId, nome: empresaNome };
+  document.getElementById("lojas-empresa-nome").textContent = empresaNome;
+  showScreen("lojas");
+  await carregarLojas();
+}
+async function carregarLojas() {
+  const lojas = await sb(`cj_lojas?empresa_id=eq.${state.empresaAtual.id}&select=*&order=nome`);
+  const list = document.getElementById("lojas-list");
+  if (!lojas.length) { list.innerHTML = `<div class="empty-state"><div class="ic">🏪</div>Ainda não há lojas</div>`; return; }
+  const gerentesPorLoja = await Promise.all(lojas.map(l => sb(`cj_utilizadores?loja_id=eq.${l.id}&papel=eq.gerente&select=id`)));
+  list.innerHTML = lojas.map((l, i) => `
+    <div class="loja-card" onclick="abrirGerentes('${l.id}','${l.nome.replace(/'/g,"\\'")}')">
+      <div class="nome">${l.nome}</div>
+      <div class="meta">${gerentesPorLoja[i].length} gerente(s)</div>
+    </div>
+  `).join("");
+}
+function openLojaModal() { document.getElementById("lNome").value = ""; document.getElementById("modalLoja").classList.add("active"); }
+async function guardarLoja() {
+  const nome = document.getElementById("lNome").value.trim();
+  if (!nome) return;
+  await sb("cj_lojas", { method: "POST", body: JSON.stringify([{ empresa_id: state.empresaAtual.id, nome }]) });
+  closeModal("modalLoja");
+  carregarLojas();
+}
+
+/* ---------- GERENTES ---------- */
+async function abrirGerentes(lojaId, lojaNome) {
+  state.lojaAtual = { id: lojaId, nome: lojaNome };
+  document.getElementById("gerentes-loja-nome").textContent = lojaNome;
+  showScreen("gerentes");
+  await carregarGerentes();
+}
+function voltarLojas() { showScreen("lojas"); }
+async function carregarGerentes() {
+  const gerentes = await sb(`cj_utilizadores?loja_id=eq.${state.lojaAtual.id}&papel=eq.gerente&ativo=eq.true&select=*&order=nome`);
+  const list = document.getElementById("gerentes-list");
+  if (!gerentes.length) { list.innerHTML = `<div class="empty-state"><div class="ic">👤</div>Ainda não há gerente nesta loja</div>`; return; }
+  list.innerHTML = gerentes.map(g => `
+    <div class="ger-card">
+      <div class="nome">${g.nome}</div>
+      <div class="meta">Login: ${g.username || "—"}</div>
+    </div>
+  `).join("");
+}
+function openGerenteModal() {
+  document.getElementById("gNome").value = "";
+  document.getElementById("gUsername").value = "";
+  document.getElementById("gPassword").value = "";
+  document.getElementById("gerenteError").textContent = "";
+  document.getElementById("modalGerente").classList.add("active");
+}
+async function guardarGerente() {
+  const nome = document.getElementById("gNome").value.trim();
+  const username = document.getElementById("gUsername").value.trim().toLowerCase();
+  const password = document.getElementById("gPassword").value;
+  const errEl = document.getElementById("gerenteError");
+  if (!nome || !username || !password) { errEl.textContent = "Preenche todos os campos."; return; }
+  try {
+    const password_hash = await sha256Hex(password);
+    await sb("cj_utilizadores", {
+      method: "POST",
+      body: JSON.stringify([{ empresa_id: state.empresaAtual.id, loja_id: state.lojaAtual.id, nome, username, password_hash, papel: "gerente" }])
+    });
+    closeModal("modalGerente");
+    carregarGerentes();
+  } catch (e) {
+    if (String(e).includes("duplicate") || String(e).includes("23505")) errEl.textContent = "Esse utilizador já existe.";
+    else errEl.textContent = "Não foi possível criar o acesso.";
+  }
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/cj-admin/service-worker.js", { scope: "/cj-admin/" }).catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
