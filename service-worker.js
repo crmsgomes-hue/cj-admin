@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cj-admin-cache-v1';
+const CACHE_NAME = 'cj-admin-cache-v2';
 const SCOPE = '/cj-admin/';
 const CORE_ASSETS = [SCOPE, SCOPE + 'index.html', SCOPE + 'manifest.json'];
 
